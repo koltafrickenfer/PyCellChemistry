@@ -631,4 +631,4 @@ if __name__ == '__main__':
     #rndsoup()
     #codegrowth()
     #quine()
-    test_interpreter('/home/kolt/Documents/workspace/fraglets0.32/fra/lib/sort.1.fra')
+    test_interpreter('scripts/sort.fra')
