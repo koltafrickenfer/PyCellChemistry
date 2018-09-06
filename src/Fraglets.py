@@ -34,6 +34,14 @@
 
 from artchem.KeyMultiset import *
 
+def is_number_tryexcept(s):
+    """ Returns True is string is a number. """
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 class Fraglets():
     def __init__( self, nid='' ):
         """ create a Fraglets interpreter and reaction vessel with node id
@@ -43,28 +51,50 @@ class Fraglets():
 	self.active = KeyMultiset()
 	self.passive = KeyMultiset()
         self.instr = { # instruction set
-            'match'  : 'M',
-            'matchp' : 'Z',
-            'dup'    : 'D',
-            'exch'   : 'E',
-            'pop'    : 'P',
-            'nop'    : 'N',
-            'nul'    : 'U',
-            'split'  : 'S',
-            'send'   : 'X',
-            'fork'   : 'F'
+            'match'    : 'M',
+            'matchp'   : 'Z',
+            'dup'      : 'D',
+            'exch'     : 'E',
+            'pop'      : 'P',
+            'nop'      : 'N',
+            'nul'      : 'U',
+            'split'    : 'S',
+            'send'     : 'X',
+            'fork'     : 'F',
+            'empty'    : 'Y',
+            'length'   : 'L',
+            'lt'       : '<',
+            'pop2'     : 'B',
+            'copy'     : 'C',
+            'sum'      : '+',
+            'mult'     : 'T',
+            'div'      : '/',
+            'abs'      : 'A',
+            'sub'      : '-',
+            'mod'      : '%'
         }
         self.op = { # implementation of instruction set
-            'M' : [ self.r_match,  'match' ],
-            'Z' : [ self.r_matchp, 'matchp' ],
-            'D' : [ self.r_dup,    'dup' ],
-            'E' : [ self.r_exch,   'exch' ],
-            'P' : [ self.r_pop,    'pop' ],
-            'N' : [ self.r_nop,    'nop' ],
-            'U' : [ self.r_nul,    'nul' ],
-            'S' : [ self.r_split,  'split' ],
-            'X' : [ self.r_send,   'send' ],
-            'F' : [ self.r_fork,   'fork' ]
+            'M' : [ self.r_match,   'match' ],
+            'Z' : [ self.r_matchp,  'matchp' ],
+            'D' : [ self.r_dup,     'dup' ],
+            'E' : [ self.r_exch,    'exch' ],
+            'P' : [ self.r_pop,     'pop' ],
+            'N' : [ self.r_nop,     'nop' ],
+            'U' : [ self.r_nul,     'nul' ],
+            'S' : [ self.r_split,   'split' ],
+            'X' : [ self.r_send,    'send' ],
+            'F' : [ self.r_fork,    'fork' ],
+            'Y' : [ self.r_empty,   'empty'],
+            'L' : [ self.r_length,  'length'],
+            '<' : [ self.r_lessThan,'lt'],
+            'B' : [ self.r_pop2,    'pop2'],
+            'C' : [ self.r_copy,    'copy'],
+            '+' : [ self.r_sum,     'sum'],
+            'T' : [ self.r_mult,    'mult'],
+            '/' : [ self.r_divide,  'divide'],
+            '-' : [ self.r_sub,     'sub'],
+            'A' : [ self.r_abs,     'abs'],
+            '%' : [ self.r_mod,     'mod']
         }
         self.prop = {}
         self.wt = 0.0
@@ -74,22 +104,22 @@ class Fraglets():
 
     def ismatchp(self, mol):
         """ true if fraglet 'mol' starts with a matchp instruction """
-        if mol == '': return False
+        if mol == tuple(): return False
         return mol[0] == self.instr['matchp']
 
     def isbimol(self, mol):
         """ true if fraglet 'mol' starts with a bimolecular reaction rule """
-        if mol == '': return False
+        if mol == tuple(): return False
         return mol[0] == self.instr['match'] or mol[0] == self.instr['matchp']
 
     def isunimol(self, mol):
         """ true if fraglet 'mol' starts with a unimolecular reaction rule """
-        if mol == '': return False
+        if mol == tuple(): return False
         return mol[0] in self.op and not self.isbimol(mol)
 
     def ispassive(self, mol):
         """ true if fraglet 'mol' does not start with a reaction rule """
-        if mol == '': return False
+        if mol == tuple(): return False
         return mol[0] not in self.op
 
     def getmethod(self, mol):
@@ -105,7 +135,8 @@ class Fraglets():
         """ get human-friendly name for an instruction in character-encoded
             format
         """
-        if op not in self.op: return op
+        if op not in self.op:
+            return op
         info = self.op[op]
         name = info[1]
         return name
@@ -156,39 +187,53 @@ class Fraglets():
 
     def r_dup(self, mol):
         """ fire a 'dup' fraglet: duplicate 3rd symbol """
-        if len(mol) < 2: return ''
-        if len(mol) < 3: return mol[1]
-        return mol[1] + mol[2] + mol[2:]
+        if len(mol) < 2: return tuple()
+        if len(mol) < 3: return (mol[1],)
+        return (mol[1], mol[2],) + mol[2:]
 
     def r_exch(self, mol):
         """ fire an 'exch' fraglet: exchange symbols n. 3 and 4 """
-        if len(mol) < 2: return ''
+        if len(mol) < 2: return tuple()
         if len(mol) < 4: return mol[1:]
-        if len(mol) < 5: return mol[1] + mol[3] + mol[2]
-        return mol[1] + mol[3] + mol[2] + mol[4:]
+        if len(mol) < 5: return (mol[1],mol[3],mol[2])
+        return (mol[1],mol[3],mol[2]) + mol[4:]
 
     def r_pop(self, mol):
         """ fire a 'pop' fraglet: consume 'nop' symbol plus 3rd symbol """
-        if len(mol) < 2: return ''
+        if len(mol) < 2: return tuple()
         if len(mol) < 4: return mol[1]
-        return mol[1] + mol[3:]
+        return (mol[1],) + mol[3:]
 
     def r_nop(self, mol):
         """ fire a 'nop' fraglet: consume 'nop' symbol """
         if len(mol) < 2:
-            return ''
+            return tuple()
         return mol[1:]
 
     def r_nul(self, mol):
         """ fire a 'nul' fraglet: delete the fraglet """
-        return ''
+        return tuple()
 
     def r_split(self, mol):
         """ fire a 'split' fraglet: split at the first occurrence of a '*'
             symbol
         """
-        if len(mol) < 2: return ''
-        return mol[1:].split('*', 1)
+        if len(mol) < 2: return tuple()
+        list1 = tuple()
+        list2 = tuple()
+        switch = False
+        for char in mol[1:]:
+            if char == '*':
+                if switch == True:
+                    list2 = list2 + ("*",) 
+                switch = True
+                continue
+            
+            if not switch:
+                list1 = list1 + (char,)
+            if switch:
+                list2 = list2 + (char,)
+        return [list1,list2]
 
     def r_send(self, mol):
         """ fire a 'send' fraglet by consuming the header symbols and
@@ -197,30 +242,141 @@ class Fraglets():
         # PENDING: send could be implemented as a reaction: if link not
         # connected, wait for connection (so send is a reaction between
         # the fraglet and the link to where the message is sent
-        if len(mol) < 3: return ''
+        if len(mol) < 3: return tuple()
         dst = mol[1]
         if dst in self.cnx:
             addr = self.cnx[dst]
             addr.inject(mol[2:])
-        return ''
+        return tuple()
 
     def r_fork(self, mol):
         """ fire a 'fork' fraglet that duplicates its tail """
-        if len(mol) < 2: return ''
+        if len(mol) < 2: return tuple()
         if len(mol) < 3: return mol[1:]
         if len(mol) < 4:
-            m1 = mol[1]
-            m2 = mol[2]
+            m1 = (mol[1],)
+            m2 = (mol[2],)
         else:
-            m1 = mol[1] + mol[3:]
+            m1 = (mol[1],) + mol[3:]
             m2 = mol[2:]
         return [m1, m2]
+    
+    def r_empty(self,mol):
+        """ [empty yes no tail] --> if |tail|==0:  [yes]
+                                    else:          [no tail]"""
+        if len(mol) < 3: return tuple()
+        if len(mol) == 3: return (mol[1],)
+        if len(mol) > 3: return mol[2:]
 
+
+    def r_length(self,mol):
+        """ [length t1 tail]      --> [t1 |tail| tail]"""
+        if len(mol) <= 2: return tuple()
+
+        return (mol[1],str(len(mol[2:]))) + mol[2:]
+
+    
+    def r_lessThan(self,mol):
+        """[lt yes no n m tail]  --> if n<m: [yes n m tail]
+                                     else:   [no n m tail]"""
+        newMol = tuple()
+        if len(mol) > 4: 
+            if  is_number_tryexcept(mol[3]) and  is_number_tryexcept(mol[4]):
+                if int(mol[3]) < int(mol[4]):
+                    newMol = newMol + (mol[1],)
+                else:
+                    newMol = newMol + (mol[2],)
+                newMol = newMol + (mol[3:])
+        return newMol
+
+    def r_pop2(self,mol):
+        """[pop2 h t a b tail] --> [h a], [t b tail]
+            pops head element 'a' out of a list 'a b tail'; the result
+            has header tags 'h' and 't', respectively. """
+
+        if len(mol) < 3:
+            return tuple()
+        if len(mol) == 3:
+            mol1 = (mol[1],)
+            mol2 = (mol[2],)
+        if len(mol) > 3:
+            mol1 = (mol[1],mol[3],)
+            mol2 = (mol[2],)+mol[4:]
+        return [mol1,mol2]
+    
+    def r_sum(self,mol):
+        """[sum  tag n1 n2 tail] --> [tag (n1 + n2) tail]"""
+        newMol = tuple()
+        if len(mol) < 4: return newMol 
+        if is_number_tryexcept(mol[2]) and is_number_tryexcept(mol[3]): 
+            sumation = str(int(mol[2]) + int(mol[3]))
+            newMol = (mol[1],sumation,)+mol[4:]
+        return newMol
+
+
+
+    def r_copy(self,mol):
+        """[copy tail] --> [tail]2 """
+        if len(mol) < 2: return tuple()
+        return [mol[1:],mol[1:]]
+
+    def r_mult(self,mol):
+        """[mult tag n1 n2 tail] --> [tag (n1 * n2) tail]"""
+        newMol = tuple()
+        if len(mol) < 4: return newMol 
+        if is_number_tryexcept(mol[2]) and is_number_tryexcept(mol[3]): 
+            mult = str(int(mol[2]) * int(mol[3]))
+            newMol = (mol[1],mult,)+mol[4:]
+        return newMol
+    
+    def r_divide(self,mol):
+        """[div  tag n1 n2 tail] --> [tag (n1/n2) tail]
+         division - fraglet is discarded if 2nd param is 0 """
+        newMol = tuple()
+        if len(mol) < 4: return newMol 
+        if is_number_tryexcept(mol[2]) and is_number_tryexcept(mol[3]): 
+            if int(mol[3]) == 0 : 
+                return newMol
+            print mol
+            mult = str(int(mol[2]) / int(mol[3]))
+            newMol = (mol[1],mult,)+mol[4:]
+        return newMol
+
+    def r_mod(self,mol):
+        """[mod  tag n1 n2 tail] --> [tag (n1 % n2) tail]"""
+        newMol = tuple()
+        if len(mol) < 4: return newMol 
+        if is_number_tryexcept(mol[2]) and is_number_tryexcept(mol[3]):
+            if int(mol[3]) == 0 : 
+                return newMol
+            print mol
+            mult = str(int(mol[2]) % int(mol[3]))
+            newMol = (mol[1],mult,)+mol[4:]
+        return newMol
+    
+    def r_sub(self,mol):
+        """[sub  tag n1 n2 tail] --> [tag (n1 - n2) tail]"""
+        newMol = tuple()
+        if len(mol) < 4: return newMol 
+        if is_number_tryexcept(mol[2]) and is_number_tryexcept(mol[3]): 
+            mult = str(int(mol[2]) - int(mol[3]))
+            newMol = (mol[1],mult,)+mol[4:]
+        return newMol
+
+    def r_abs(self,mol):
+        """[abs tag n tail] --> [tag (|n|) tail]"""
+        newMol = tuple()
+        if len(mol) < 3: return newMol 
+        if is_number_tryexcept(mol[2]): 
+            mult = str(abs(int(mol[2])))
+            newMol = (mol[1],mult,)+mol[3:]
+        return newMol
+    
     def add_cnx(self, dst, addr):
         """ add a link between this vessel and another vessel: 'dst' is the
             tag that identifies the link; 'addr' is the reference to the
             Fraglets object corresponding to the destination vessel
-        """
+        """ 
         self.cnx[dst] = addr
 
     def del_cnx(self, dst):
@@ -233,7 +389,9 @@ class Fraglets():
 
     def inject( self, mol, mult=1 ):
         """ inject 'mult' copies of fraglet 'mol' in the reactor """
-	if (mol == '' or mult < 1): return
+        if (mol == tuple() or mult < 1): 
+            return
+
         if (self.isbimol(mol)):
             if len(mol) > 1:
                 key = mol[1]
@@ -316,6 +474,7 @@ class Fraglets():
         """
         frag = self.nodeid + '['
         for i in range(len(mol)):
+            #print "mol2frag",mol[i]
             op = mol[i]
             name = self.getname(op)
             frag += ' ' + name
@@ -332,14 +491,14 @@ class Fraglets():
         frag = frag.strip('[')
         frag = frag.strip(']')
         slist = frag.split(' ')
-        mol = ''
+        mol = tuple()
         for s in slist:
             if len(s) <= 0: continue
             if s in self.instr:
-                mol += self.instr[s]
+                mol = mol+ tuple(self.instr[s])
             else:
                 # tag # TMP: take 1st symbol; TO DO: build symbol table
-                mol += s[0]
+                mol = mol + (s,)
         return mol
 
     def trace_mol(self, mol, mult=1):
@@ -363,7 +522,7 @@ class Fraglets():
             (doesn't work for the send reaction)
         """
         self.trace_mlist(mlist1)
-        print >> sys.stderr, ' --> ',
+        print >> sys.stderr, ' --> '
         self.trace_mlist(mlist2)
         print >> sys.stderr
 
@@ -425,13 +584,13 @@ class Fraglets():
 
 def rndsoup():
     """ generate a random soup of fraglets and run it for a few iterations """
-    tags = '12345'
-    instrs = 'MDEPNU*' # random instructions except matchp & send
+    tags = '1234567890zxcvbnm'
+    instrs = 'MSDEPNU*YLB<BC+T/A-%' # random instructions except matchp & send
     alphabet = instrs + tags
     probm = 0.5 # probability of a matchp at the beginning
     maxlen = 10
     vessel = Fraglets()
-    for i in range(10):
+    for i in range(100):
         # create passive fraglet [ tag ... ]
         tag = tags[np.random.randint(len(tags))]
         rndlen = np.random.randint(1, maxlen)
@@ -442,7 +601,7 @@ def rndsoup():
         vessel.inject(mol)
     print  >> sys.stderr, "INIT:",
     vessel.trace()
-    vessel.run(10)
+    vessel.run(100000)
     print  >> sys.stderr, "END:",
     vessel.trace()
 
@@ -464,11 +623,12 @@ def test_interpreter(filename):
     """ read fraglets program from a file and run it for a few iterations """
     n = Fraglets()
     n.interpret(filename)
-    n.run(100)
+    n.run(20000)
+    print "done"
     n.trace()
 
 if __name__ == '__main__':
     #rndsoup()
     #codegrowth()
-    quine()
-    #test_interpreter('test.fra')
+    #quine()
+    test_interpreter('/home/kolt/Documents/workspace/fraglets0.32/fra/lib/sort.1.fra')
