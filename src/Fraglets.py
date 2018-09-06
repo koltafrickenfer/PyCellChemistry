@@ -337,7 +337,6 @@ class Fraglets():
         if is_number_tryexcept(mol[2]) and is_number_tryexcept(mol[3]): 
             if int(mol[3]) == 0 : 
                 return newMol
-            print mol
             mult = str(int(mol[2]) / int(mol[3]))
             newMol = (mol[1],mult,)+mol[4:]
         return newMol
@@ -349,7 +348,6 @@ class Fraglets():
         if is_number_tryexcept(mol[2]) and is_number_tryexcept(mol[3]):
             if int(mol[3]) == 0 : 
                 return newMol
-            print mol
             mult = str(int(mol[2]) % int(mol[3]))
             newMol = (mol[1],mult,)+mol[4:]
         return newMol
