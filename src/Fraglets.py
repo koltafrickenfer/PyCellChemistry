@@ -219,21 +219,21 @@ class Fraglets():
             symbol
         """
         if len(mol) < 2: return tuple()
-        list1 = tuple()
-        list2 = tuple()
+        mol1 = tuple()
+        mol2 = tuple()
         switch = False
         for char in mol[1:]:
             if char == '*':
                 if switch == True:
-                    list2 = list2 + ("*",) 
+                    mol2 = mol2 + ("*",) 
                 switch = True
                 continue
             
             if not switch:
-                list1 = list1 + (char,)
+                mol1 = mol1 + (char,)
             if switch:
-                list2 = list2 + (char,)
-        return [list1,list2]
+                mol2 = mol2 + (char,)
+        return [mol1,mol2]
 
     def r_send(self, mol):
         """ fire a 'send' fraglet by consuming the header symbols and
