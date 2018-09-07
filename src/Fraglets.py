@@ -582,7 +582,7 @@ class Fraglets():
 
 def rndsoup():
     """ generate a random soup of fraglets and run it for a few iterations """
-    tags = '1234567890zxcvbnm'
+    tags = '1234567890abcdefg'
     instrs = 'MSDEPNU*YLB<BC+T/A-%' # random instructions except matchp & send
     alphabet = instrs + tags
     probm = 0.5 # probability of a matchp at the beginning
@@ -592,10 +592,10 @@ def rndsoup():
         # create passive fraglet [ tag ... ]
         tag = tags[np.random.randint(len(tags))]
         rndlen = np.random.randint(1, maxlen)
-        mol = tag + rndpolymer(alphabet, rndlen)
+        mol = (tag,) + rndpolymer(alphabet, rndlen,vessel.op)
         p = np.random.random()
         if p < probm: # create active fraglet [ matchp tag ...]
-            mol = 'Z' + mol
+            mol = ('Z',) + mol
         vessel.inject(mol)
     print  >> sys.stderr, "INIT:",
     vessel.trace()
@@ -626,7 +626,7 @@ def test_interpreter(filename):
     n.trace()
 
 if __name__ == '__main__':
-    #rndsoup()
+    rndsoup()
     #codegrowth()
     #quine()
-    test_interpreter('scripts/sort.fra')
+    #test_interpreter('scripts/sort.fra')

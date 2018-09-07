@@ -141,13 +141,16 @@ class Multiset():
         for k in self.topkeys():
             print >> sys.stderr, k, self.mult(k)
 
-def rndpolymer(alphabet, length):
+def rndpolymer(alphabet, length,op):
     """ generate a random string of given length with characters from the
         given alphabet
     """
-    s = ''
+    s = tuple()
     for i in range(length):
         n = np.random.randint(len(alphabet))
-        s += alphabet[n]
+        if alphabet[n] in op:
+            s += (op[alphabet[n]][1],)
+        else:
+            s += (alphabet[n],)
     return s
 
