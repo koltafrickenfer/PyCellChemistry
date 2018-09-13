@@ -41,7 +41,7 @@ class KeyMultiset():
         """ inject a given amount of a molecule in the multiset,
             indexed by the provided key
         """
-	if (key == '' or mol == '' or mult < 1): return
+	if (key == tuple() or mol == tuple() or mult < 1): return
 	if (key in self.keymset):
             self.keymset[key].inject(mol, mult)
 	else:
@@ -51,7 +51,7 @@ class KeyMultiset():
 
     def expel( self, key, mol, mult=1 ):
         """ expel a given amount of a molecule from the multiset """
-	if (key == '' or mol == '' or mult < 1): return
+	if (key == tuple() or mol == tuple() or mult < 1): return
         if (key not in self.keymset): return
         mult = self.keymset[key].expel(mol, mult)
 	self.total -= mult
@@ -59,13 +59,13 @@ class KeyMultiset():
 
     def rndmol( self, key ):
         """ peek at a random molecule with given key, without removing it """
-        if (key not in self.keymset): return ''
+        if (key not in self.keymset): return tuple()
         return self.keymset[key].rndmol()
 
     def expelrnd( self, key ):
         """ expel a random molecule with given key """
         mol = self.rndmol(key)
-        if (mol != ''): self.expel(key, mol)
+        if (mol != tuple()): self.expel(key, mol)
         return mol
 
     def keys( self ):
@@ -76,11 +76,11 @@ class KeyMultiset():
         """ true if this multiset is empty """
 	return len(self.keymset) == 0
 
-    def mult( self, mol='' ):
+    def mult( self, mol=tuple() ):
         """ multiplicity: number of molecules of species 'mol' present
             in the multiset (regardless of key)
         """
-	if (mol == ''): return self.total
+	if (mol == tuple()): return self.total
         # CAUTION: no key provided, so must loop through keys, inefficient
         for k in self.keys():
             m = self.keymset[k].mult()
@@ -89,7 +89,7 @@ class KeyMultiset():
 
     def multk( self, key ):
         """ number of molecules (multiplicity) with the given key """
-	if (key == '' or key not in self.keymset): return 0
+	if (key == tuple() or key not in self.keymset): return 0
         return self.keymset[key].mult()
 
     def nmolecules( self ):

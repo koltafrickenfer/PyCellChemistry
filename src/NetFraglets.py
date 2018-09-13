@@ -59,8 +59,8 @@ def cdp():
     for i in range(niter):
         print >> sys.stderr, "ITER=", i
         if i % 4 == 0:
-            mol = 'cd' + str(cnt)
-            n1.inject(mol)
+            mol = 'c d ' + str(cnt)
+            n1.inject(n1.parse(mol))
             cnt = (cnt + 1) % 10
         net.propensity()
         net.gillespie()

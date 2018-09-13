@@ -154,7 +154,7 @@ class Fraglets():
 
     def react2(self, mol1, mol2):
         """ fire bimolecular reaction between mol1 and mol2 """
-        f = self.getmethod(mol1)
+        f = self.getmethod(mol1)    
         result = f(mol1, mol2)
         self.trace_reaction([mol1, mol2], result)
         return result
@@ -472,7 +472,6 @@ class Fraglets():
         """
         frag = self.nodeid + '['
         for i in range(len(mol)):
-            #print "mol2frag",mol[i]
             op = mol[i]
             name = self.getname(op)
             frag += ' ' + name
@@ -588,7 +587,7 @@ def rndsoup():
     probm = 0.5 # probability of a matchp at the beginning
     maxlen = 10
     vessel = Fraglets()
-    for i in range(100):
+    for i in range(10):
         # create passive fraglet [ tag ... ]
         tag = tags[np.random.randint(len(tags))]
         rndlen = np.random.randint(1, maxlen)

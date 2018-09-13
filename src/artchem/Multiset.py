@@ -43,7 +43,7 @@ class Multiset():
 
     def inject( self, mol, mult=1 ):
         """ inject a given amount of a molecule in the multiset """
-	if (mol == '' or mult < 1): return
+	if (mol == tuple() or mult < 1): return
 	if (mol in self.mset): self.mset[mol] += mult
 	else: self.mset[mol] = mult
 	self.total += mult
@@ -52,7 +52,7 @@ class Multiset():
         """ expel a given amount of a molecule from the multiset;
             returns the number of molecules actually expelled
         """
-	if (mol == '' or mult < 1 or mol not in self.mset): return 0
+	if (mol == tuple() or mult < 1 or mol not in self.mset): return 0
 	if (mult > self.mset[mol]): mult = self.mset[mol]
 	self.mset[mol] -= mult
 	self.total -= mult
@@ -69,14 +69,14 @@ class Multiset():
             removing it
         """
         if (self.total <= 0):
-            return ''
+            return tuple()
         molid = np.random.randint(self.total)
         for mol in self.keys():
             m = self.mult(mol)
             if (molid < m):
                 return mol
             molid -= m
-        return ''
+        return tuple()
 
     def expelrnd( self ):
         """ expel a random molecule from the multiset """
@@ -92,11 +92,11 @@ class Multiset():
         """ true if this multiset is empty """
 	return len(self.mset) == 0
 
-    def mult( self, mol='' ):
+    def mult( self, mol=tuple() ):
         """ multiplicity: number of molecules of type 'mol' present
             in the multiset
         """
-	if (mol == ''): return self.total
+	if (mol == tuple()): return self.total
 	elif (mol in self.mset): return self.mset[mol]
 	else: return 0
 
