@@ -32,8 +32,9 @@
 from Multiset import *
 
 class KeyMultiset():
-    def __init__( self ):
+    def __init__( self,blankMol=str):
         """ initialize empty multiset """
+	self.blankMol = blankMol
 	self.keymset = {} # key multiset is dictionary of multisets
 	self.total = 0 # total amount of molecules in all multisets
 
@@ -41,17 +42,17 @@ class KeyMultiset():
         """ inject a given amount of a molecule in the multiset,
             indexed by the provided key
         """
-	if (key == tuple() or mol == tuple() or mult < 1): return
+	if (key == self.blankMol() or mol == self.blankMol() or mult < 1): return
 	if (key in self.keymset):
             self.keymset[key].inject(mol, mult)
 	else:
-            self.keymset[key] = Multiset()
+            self.keymset[key] = Multiset(blankMol=self.blankMol)
             self.keymset[key].inject(mol, mult)
 	self.total += mult
 
     def expel( self, key, mol, mult=1 ):
         """ expel a given amount of a molecule from the multiset """
-	if (key == tuple() or mol == tuple() or mult < 1): return
+	if (key == self.blankMol() or mol == self.blankMol() or mult < 1): return
         if (key not in self.keymset): return
         mult = self.keymset[key].expel(mol, mult)
 	self.total -= mult
@@ -59,13 +60,13 @@ class KeyMultiset():
 
     def rndmol( self, key ):
         """ peek at a random molecule with given key, without removing it """
-        if (key not in self.keymset): return tuple()
+        if (key not in self.keymset): return self.blankMol()
         return self.keymset[key].rndmol()
 
     def expelrnd( self, key ):
         """ expel a random molecule with given key """
         mol = self.rndmol(key)
-        if (mol != tuple()): self.expel(key, mol)
+        if (mol != self.blankMol()): self.expel(key, mol)
         return mol
 
     def keys( self ):
@@ -76,11 +77,12 @@ class KeyMultiset():
         """ true if this multiset is empty """
 	return len(self.keymset) == 0
 
-    def mult( self, mol=tuple() ):
+    def mult( self, mol):
         """ multiplicity: number of molecules of species 'mol' present
             in the multiset (regardless of key)
         """
-	if (mol == tuple()): return self.total
+	mol = self.blankMol(mol)
+	if (mol == self.blankMol()): return self.total
         # CAUTION: no key provided, so must loop through keys, inefficient
         for k in self.keys():
             m = self.keymset[k].mult()
@@ -89,7 +91,7 @@ class KeyMultiset():
 
     def multk( self, key ):
         """ number of molecules (multiplicity) with the given key """
-	if (key == tuple() or key not in self.keymset): return 0
+	if (key == self.blankMol() or key not in self.keymset): return 0
         return self.keymset[key].mult()
 
     def nmolecules( self ):

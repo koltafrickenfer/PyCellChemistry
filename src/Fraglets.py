@@ -47,9 +47,9 @@ class Fraglets():
         """ create a Fraglets interpreter and reaction vessel with node id
             'nid'
         """
-        self.unimol = Multiset()
-	self.active = KeyMultiset()
-	self.passive = KeyMultiset()
+        self.unimol = Multiset(blankMol=tuple)
+	self.active = KeyMultiset(blankMol=tuple)
+	self.passive = KeyMultiset(blankMol=tuple)
         self.instr = { # instruction set
             'match'    : 'M',
             'matchp'   : 'Z',
@@ -591,7 +591,7 @@ def rndsoup():
         # create passive fraglet [ tag ... ]
         tag = tags[np.random.randint(len(tags))]
         rndlen = np.random.randint(1, maxlen)
-        mol = (tag,) + rndpolymer(alphabet, rndlen,vessel.op)
+        mol = (tag,) + vessel.unimol.rndpolymer(alphabet, rndlen,vessel.op)
         p = np.random.random()
         if p < probm: # create active fraglet [ matchp tag ...]
             mol = ('Z',) + mol
@@ -625,7 +625,7 @@ def test_interpreter(filename):
     n.trace()
 
 if __name__ == '__main__':
-    rndsoup()
+    #rndsoup()
     #codegrowth()
     #quine()
-    #test_interpreter('scripts/sort.fra')
+    test_interpreter('scripts/sort.fra')

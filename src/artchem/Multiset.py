@@ -36,14 +36,15 @@ import sys
 import numpy as np
 
 class Multiset():
-    def __init__( self ):
+    def __init__( self, blankMol = str):
         """ initialize empty multiset """
+	self.blankMol = blankMol
 	self.mset = {} # multiset implemented as a python dictionary
 	self.total = 0 # total amount of molecules in the multiset
 
     def inject( self, mol, mult=1 ):
         """ inject a given amount of a molecule in the multiset """
-	if (mol == tuple() or mult < 1): return
+	if (mol == self.blankMol() or mult < 1): return
 	if (mol in self.mset): self.mset[mol] += mult
 	else: self.mset[mol] = mult
 	self.total += mult
@@ -52,7 +53,7 @@ class Multiset():
         """ expel a given amount of a molecule from the multiset;
             returns the number of molecules actually expelled
         """
-	if (mol == tuple() or mult < 1 or mol not in self.mset): return 0
+	if (mol == self.blankMol() or mult < 1 or mol not in self.mset): return 0
 	if (mult > self.mset[mol]): mult = self.mset[mol]
 	self.mset[mol] -= mult
 	self.total -= mult
@@ -69,14 +70,14 @@ class Multiset():
             removing it
         """
         if (self.total <= 0):
-            return tuple()
+            return self.blankMol()
         molid = np.random.randint(self.total)
         for mol in self.keys():
             m = self.mult(mol)
             if (molid < m):
                 return mol
             molid -= m
-        return tuple()
+        return self.blankMol()
 
     def expelrnd( self ):
         """ expel a random molecule from the multiset """
@@ -92,11 +93,11 @@ class Multiset():
         """ true if this multiset is empty """
 	return len(self.mset) == 0
 
-    def mult( self, mol=tuple() ):
+    def mult( self, mol=tuple()):
         """ multiplicity: number of molecules of type 'mol' present
             in the multiset
         """
-	if (mol == tuple()): return self.total
+	if (mol == self.blankMol()): return self.total
 	elif (mol in self.mset): return self.mset[mol]
 	else: return 0
 
@@ -141,16 +142,16 @@ class Multiset():
         for k in self.topkeys():
             print >> sys.stderr, k, self.mult(k)
 
-def rndpolymer(alphabet, length,op):
-    """ generate a random string of given length with characters from the
-        given alphabet
-    """
-    s = tuple()
-    for i in range(length):
-        n = np.random.randint(len(alphabet))
-        if alphabet[n] in op:
-            s += (op[alphabet[n]][1],)
-        else:
-            s += (alphabet[n],)
-    return s
+    def rndpolymer(self,alphabet, length,op):
+        """ generate a random string of given length with characters from the
+            given alphabet
+        """
+        s = self.blankMol()
+        for i in range(length):
+            n = np.random.randint(len(alphabet))
+            if alphabet[n] in op:
+                s += (op[alphabet[n]][1],)
+            else:
+                s += (alphabet[n],)
+        return s
 
